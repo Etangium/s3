@@ -54,7 +54,7 @@ module S3
       headers = options[:headers] || {}
       headers.merge!("date" => expires.to_i.to_s)
 
-      options.merge!(:resource => "/#{bucket}/#{resource}",
+      options.merge!(:resource => "/#{bucket}/#{URI.escape(resource, /[^#{URI::REGEXP::PATTERN::UNRESERVED}\/]/)}",
                      :method => options[:method] || :get,
                      :headers => headers)
       signature = canonicalized_signature(options)
@@ -116,6 +116,7 @@ module S3
       string_to_sign << "\n"
       string_to_sign << canonicalized_amz_headers
       string_to_sign << canonicalized_resource
+      string_to_sign = string_to_sign.gsub("%3F", "?").gsub("%3D", "=").gsub("%3B", ";").gsub("%20", " ")
 
       digest = OpenSSL::Digest::Digest.new("sha1")
       hmac = OpenSSL::HMAC.digest(digest, secret_access_key, string_to_sign)
