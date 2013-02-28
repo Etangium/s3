@@ -51,9 +51,11 @@ module S3
     end
 
     # Retrieves the object from the server. Method is used to download
-    # object information only (content type, size and so on). It does
-    # NOT download the content of the object (use the #content method
-    # to do it).
+    # object information only (content type, size).
+    # Notice: It does NOT download the content of the object
+    # (use the #content method to do it).
+    # Notice: this do not fetch acl information, use #request_acl
+    # method for that.
     def retrieve
       object_headers
       self
@@ -69,9 +71,13 @@ module S3
       false
     end
 
-    def content=(value)
-      @content = value
-      @has_content = true
+    # Retrieves acl for object from the server.
+    #
+    # Return:
+    # hash: user|group => permission
+    def request_acl
+      response = object_request(:get, :params => "acl")
+      parse_acl(response.body)
     end
 
     # Downloads the content of the object, and caches it. Pass true to
