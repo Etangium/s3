@@ -7,7 +7,6 @@ module S3
 
     attr_accessor :content_type, :content_disposition, :content_encoding, :cache_control
     attr_reader :last_modified, :etag, :size, :bucket, :key, :acl, :storage_class, :metadata
-    attr_writer :content
 
     def_instance_delegators :bucket, :name, :service, :bucket_request, :vhost?, :host, :path_prefix
     def_instance_delegators :service, :protocol, :port, :secret_access_key
@@ -84,8 +83,7 @@ module S3
     # Downloads the content of the object, and caches it. Pass true to
     # clear the cache and download the object again.
     def content(reload = false)
-      return @content if defined?(@content) and not reload
-      get_object
+      get_object if reload or not @has_content
       @content
     end
 
@@ -183,6 +181,7 @@ module S3
     def get_object(options = {})
       response = object_request(:get, options)
       parse_headers(response)
+      self.content = response.body
     end
 
     def object_headers(options = {})
@@ -257,7 +256,6 @@ module S3
         self.size = response["content-range"].sub(/[^\/]+\//, "").to_i
       else
         self.size = response["content-length"]
-        self.content = response.body
       end
     end
   end
