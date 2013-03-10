@@ -71,6 +71,11 @@ module S3
       false
     end
 
+    def content=(value)
+      @content = value
+      @has_content = true
+    end
+
     # Retrieves acl for object from the server.
     #
     # Return:
